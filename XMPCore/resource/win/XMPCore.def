@@ -1,7 +1,6 @@
 ; Declares the entry points for the DLL.
 ; Highest index: 127 - WXMPMeta_GetXMPDOMFactoryInstance_1
 
-LIBRARY   XMPCore
 
 EXPORTS
 

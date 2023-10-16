@@ -1,0 +1,199 @@
+project(XMPFiles)
+
+
+find_package(ZLIB REQUIRED)
+find_package(expat REQUIRED CONFIG)
+
+
+file (GLOB INTERNAL_HEADER_COMMONCODE_NMDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/NativeMetadataSupport/*.h)
+list (APPEND INTERNAL_HEADER_COMMONCODE
+    ${CMAKE_SOURCE_DIR}/source/Endian.h
+    ${CMAKE_SOURCE_DIR}/source/SafeStringAPIs.h
+    ${CMAKE_SOURCE_DIR}/source/SafeTypes.h
+    ${CMAKE_SOURCE_DIR}/source/SuppressSAL.h
+    ${CMAKE_SOURCE_DIR}/build/XMP_BuildInfo.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/XMPFiles.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/XMPFiles_Impl.hpp
+)
+file (GLOB INTERNAL_HEADER_FILEHANDLERS ${CMAKE_CURRENT_SOURCE_DIR}/source/FileHandlers/*.hpp)
+
+file (GLOB INTERNAL_HEADER_FORMATSUPPORT_AIFF ${CMAKE_CURRENT_SOURCE_DIR}/source/FormatSupport/AIFF/*.h)
+
+file (GLOB INTERNAL_HEADER_FORMATSUPPORT_IFF ${CMAKE_CURRENT_SOURCE_DIR}/source/FormatSupport/IFF/*.h)
+
+file (GLOB INTERNAL_HEADER_FORMATSUPPORT_WAVE ${CMAKE_CURRENT_SOURCE_DIR}/source/FormatSupport/WAVE/*.h)
+
+file (GLOB INTERNAL_HEADER_FORMATSUPPORT ${CMAKE_CURRENT_SOURCE_DIR}/source/FormatSupport/*.hpp)
+
+file (GLOB INTERNAL_HEADER_PLUGINHANDLER ${CMAKE_CURRENT_SOURCE_DIR}/PluginHandler/*.h)
+
+list (APPEND PUBLIC_HEADER
+    ${CMAKE_SOURCE_DIR}/public/include/TXMPFiles.hpp
+    ${CMAKE_SOURCE_DIR}/public/include/TXMPIterator.hpp
+    ${CMAKE_SOURCE_DIR}/public/include/TXMPMeta.hpp
+    ${CMAKE_SOURCE_DIR}/public/include/TXMPUtils.hpp
+    ${CMAKE_SOURCE_DIR}/public/include/XMP.hpp
+    ${CMAKE_SOURCE_DIR}/public/include/XMP.incl_cpp
+    ${CMAKE_SOURCE_DIR}/public/include/XMP_Const.h
+    ${CMAKE_SOURCE_DIR}/public/include/XMP_Environment.h
+    ${CMAKE_SOURCE_DIR}/public/include/XMP_IO.hpp
+    ${CMAKE_SOURCE_DIR}/public/include/XMP_Version.h
+)
+
+list (APPEND HEADERFILES
+    ${CMAKE_SOURCE_DIR}/source/Host_IO.hpp
+    ${CMAKE_SOURCE_DIR}/source/XIO.hpp
+    ${CMAKE_SOURCE_DIR}/source/IOUtils.hpp
+    ${CMAKE_SOURCE_DIR}/source/XMPFiles_IO.hpp
+)
+
+#resource files
+if (WIN32)
+    file (GLOB RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/win/*.*)
+else ()
+    file (GLOB RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/linux/*.*)
+endif()
+
+file (GLOB SOURCEFILES_COMMONCODE_NMDS ${CMAKE_CURRENT_SOURCE_DIR}/source/NativeMetadataSupport/*.cpp)
+
+list (APPEND SOURCEFILES_COMMONCODE
+    ${CMAKE_SOURCE_DIR}/source/UnicodeConversions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/HandlerRegistry.cpp
+    ${CMAKE_SOURCE_DIR}/source/SafeStringAPIs.cpp
+    ${CMAKE_SOURCE_DIR}/source/PerfUtils.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/WXMPFiles.cpp
+    ${CMAKE_SOURCE_DIR}/source/XIO.cpp
+    ${CMAKE_SOURCE_DIR}/source/IOUtils.cpp
+    ${CMAKE_SOURCE_DIR}/source/XML_Node.cpp
+    ${CMAKE_SOURCE_DIR}/source/XMP_LibUtils.cpp
+    ${CMAKE_SOURCE_DIR}/source/XMP_ProgressTracker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/XMPFiles.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/XMPFiles_Impl.cpp
+    ${CMAKE_SOURCE_DIR}/source/XMPFiles_IO.cpp
+)
+if(UNIX)
+    list(APPEND SOURCEFILES_COMMONCODE ${CMAKE_SOURCE_DIR}/source/Host_IO-POSIX.cpp)
+else()
+    list(APPEND SOURCEFILES_COMMONCODE ${CMAKE_SOURCE_DIR}/source/Host_IO-Win.cpp)
+endif()
+
+file (GLOB SOURCEFILES_FILEHANDLERS ${CMAKE_CURRENT_SOURCE_DIR}/source/FileHandlers/*.cpp)
+list (APPEND SOURCEFILES_FILEHANDLERS
+${CMAKE_CURRENT_SOURCE_DIR}/source/FileHandlers/AIFF_Handler.hpp
+)
+
+
+file (GLOB SOURCEFILES_FORMATSUPPORT_AIFF  ${CMAKE_CURRENT_SOURCE_DIR}/source/FormatSupport/AIFF/*.cpp)
+
+file (GLOB SOURCEFILES_FORMATSUPPORT_IFF  ${CMAKE_CURRENT_SOURCE_DIR}/source/FormatSupport/IFF/*.cpp)
+
+file (GLOB SOURCEFILES_FORMATSUPPORT_WAVE  ${CMAKE_CURRENT_SOURCE_DIR}/source/FormatSupport/WAVE/*.cpp)
+
+file (GLOB SOURCEFILES_FORMATSUPPORT  ${CMAKE_CURRENT_SOURCE_DIR}/source/FormatSupport/*.cpp)
+
+file (GLOB SOURCEFILES_PLUGINHANDLER ${CMAKE_CURRENT_SOURCE_DIR}/source/PluginHandler/*.cpp)
+list (REMOVE_ITEM SOURCEFILES_PLUGINHANDLER
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/PluginHandler/OS_Utils_Linux.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/PluginHandler/OS_Utils_WIN.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/PluginHandler/OS_Utils_Mac.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/PluginHandler/OS_Utils_Android.cpp
+)
+if (UNIX)
+    if (APPLE)
+        list (APPEND SOURCEFILES_PLUGINHANDLER ${CMAKE_CURRENT_SOURCE_DIR}/source/PluginHandler/OS_Utils_Mac.cpp)
+    elseif(ANDROID)
+        list (APPEND SOURCEFILES_PLUGINHANDLER ${CMAKE_CURRENT_SOURCE_DIR}/source/PluginHandler/OS_Utils_ANDROID.cpp)
+    else()
+        list (APPEND SOURCEFILES_PLUGINHANDLER ${CMAKE_CURRENT_SOURCE_DIR}/source/PluginHandler/OS_Utils_Linux.cpp)
+    endif()
+else()
+        list (APPEND SOURCEFILES_PLUGINHANDLER ${CMAKE_CURRENT_SOURCE_DIR}/source/PluginHandler/OS_Utils_WIN.cpp)
+endif()
+
+
+file (GLOB ZUID_SOURCE_FILES ${CMAKE_SOURCE_DIR}/third-party/zuid/interfaces/*.cpp)
+
+
+
+list(APPEND SOURCE_FILES_XMPFILE
+    ${INTERNAL_HEADER_COMMONCODE_NMDS}
+    ${INTERNAL_HEADER_COMMONCODE}
+    ${INTERNAL_HEADER_FILEHANDLERS}
+    ${INTERNAL_HEADER_FORMATSUPPORT_AIFF}
+    ${INTERNAL_HEADER_FORMATSUPPORT_IFF}
+    ${INTERNAL_HEADER_FORMATSUPPORT_WAVE}
+    ${INTERNAL_HEADER_FORMATSUPPORT}
+    ${INTERNAL_HEADER_PLUGINHANDLER}
+    ${PUBLIC_HEADER_CLIENTGLUE}
+    ${PUBLIC_HEADER}
+    ${HEADERFILES}
+    ${RESOURCE_FILES}
+    ${SOURCEFILES_COMMONCODE_NMDS}
+    ${SOURCEFILES_COMMONCODE}
+    ${SOURCEFILES_FILEHANDLERS}
+    ${SOURCEFILES_FORMATSUPPORT_AIFF}
+    ${SOURCEFILES_FORMATSUPPORT_IFF}
+    ${SOURCEFILES_FORMATSUPPORT_WAVE}
+    ${SOURCEFILES_FORMATSUPPORT}
+    ${SOURCEFILES_PLUGINHANDLER}
+    ${PUBLIC_XMPCOMMON_CLIENTGLUE_FILES}
+    ${PUBLIC_XMPCORE_CLIENTGLUE_FILES}
+    ${ZUID_SOURCE_FILES}
+)
+
+add_library(${PROJECT_NAME} ${SOURCE_FILES_XMPFILE})
+
+add_library(XMP::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    FOLDER libs
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+    DEBUG_POSTFIX d
+)
+if (BUILD_SHARED_LIBS)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+#        CXX_VISIBILITY_PRESET hidden
+#        VISIBILITY_INLINES_HIDDEN 1
+        POSITION_INDEPENDENT_CODE ON
+    )
+endif()
+
+target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+        XMP::XMPCore
+    PRIVATE
+        expat::expat
+        ZLIB::ZLIB
+)
+
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/public/include>
+        $<INSTALL_INTERFACE:include/XMP-Toolkit-SDK>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/XMPFilesPlugins/api/source>
+)
+
+target_compile_definitions(${PROJECT_NAME}
+    PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:WIN_ENV UNICODE>
+        $<$<PLATFORM_ID:Linux>:UNIX_ENV>
+        NOMINMAX
+    PUBLIC
+        $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:XMP_StaticBuild=1>
+)
+
+target_compile_options(${PROJECT_NAME} PRIVATE
+    $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/MP>
+)
+
+install(TARGETS ${PROJECT_NAME}
+    EXPORT XMP-Toolkit-SDK
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)

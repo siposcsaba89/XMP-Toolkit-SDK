@@ -686,9 +686,10 @@ void PluginManager::scanRecursive( const std::string & tempPath, std::vector<std
 				MakeLowerCase ( &fileExt );
 			}
 
-			StringVec::const_iterator iterFound =
-				std::find_if ( mExtensions.begin(), mExtensions.end(), 
-							   std::bind2nd ( std::equal_to<std::string>(), fileExt ) );
+			StringVec::const_iterator iterFound = 
+				std::find_if(mExtensions.begin(), mExtensions.end(),
+															   [&fileExt](const std::string &ext)
+															   { return ext == fileExt; });
 
 			if ( iterFound != mExtensions.end() ) {
 
@@ -696,9 +697,10 @@ void PluginManager::scanRecursive( const std::string & tempPath, std::vector<std
 				childName.erase ( extPos - childName.c_str() );
 				MakeLowerCase ( &childName );
 				
-				StringVec::const_iterator pluginNeeded =
+				StringVec::const_iterator pluginNeeded = 
 					std::find_if ( mPluginsNeeded.begin(), mPluginsNeeded.end(),
-								   std::bind2nd ( std::equal_to<std::string>(), childName ) );
+								   [&childName](const std::string &plugin)
+								   { return plugin == childName; });
 
 				if ( (pluginNeeded != mPluginsNeeded.end()) || mPluginsNeeded.empty() ) {
 					ioFoundLibs.push_back ( childPath );

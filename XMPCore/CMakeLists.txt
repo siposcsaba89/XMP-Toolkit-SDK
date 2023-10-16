@@ -1,0 +1,132 @@
+project(XMPCore)
+
+find_package(expat REQUIRED CONFIG)
+
+list (APPEND INTERNAL_HEADER_FILES
+    ${CMAKE_SOURCE_DIR}/source/ExpatAdapter.hpp
+    ${CMAKE_SOURCE_DIR}/source/UnicodeConversions.hpp
+    ${CMAKE_SOURCE_DIR}/source/UnicodeInlines.incl_cpp
+    ${CMAKE_SOURCE_DIR}/source/XMLParserAdapter.hpp
+    ${CMAKE_SOURCE_DIR}/build/XMP_BuildInfo.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/XMPCore_Impl.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/XMPIterator.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/XMPMeta.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/XMPUtils.hpp
+)
+file (GLOB_RECURSE PRIVATE_XMPCOMMON_HEADERS ${CMAKE_SOURCE_DIR}/XMPCommon/*.h)
+file (GLOB_RECURSE PRIVATE_XMPCOMMON_SOURCES ${CMAKE_SOURCE_DIR}/XMPCommon/source/*.cpp)
+
+file (GLOB PRIVATE_XMPCORE_HEADERS 
+    ${CMAKE_SOURCE_DIR}/XMPCore/*.h 
+    ${CMAKE_SOURCE_DIR}/XMPCore/ImplHeaders/*.h 
+    ${CMAKE_SOURCE_DIR}/XMPCore/headers/*.h 
+    ${CMAKE_SOURCE_DIR}/XMPCore/Interfaces/*.h
+)
+
+file (GLOB_RECURSE PUBLIC_CLIENTGLUE_HEADER_FILES ${CMAKE_SOURCE_DIR}/public/include/client-glue/*.*)
+
+file (GLOB PUBLIC_HEADER_FILES ${CMAKE_SOURCE_DIR}/public/include/*.*)
+
+file (GLOB_RECURSE PUBLIC_XMPCOMMON_HEADERS ${CMAKE_SOURCE_DIR}/public/include/XMPCommon/*.h )
+
+file (GLOB_RECURSE PUBLIC_XMPCOMMON_SOURCES ${CMAKE_SOURCE_DIR}/public/include/XMPCommon/source/*.cpp )
+
+file (GLOB_RECURSE PUBLIC_XMPCORE_HEADERS ${CMAKE_SOURCE_DIR}/public/include/XMPCore/*.h)
+
+file (GLOB_RECURSE PUBLIC_XMPCORE_SOURCES ${CMAKE_SOURCE_DIR}/public/include/XMPCore/source/*.cpp )
+
+file (GLOB ABIWRAPPER_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/WXMP*.cpp)
+
+file (GLOB PRIVATE_XMPCORE_ISOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/*_I.cpp)
+file (GLOB PRIVATE_XMPCORE_IMPLSOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/*Impl.cpp)
+file (GLOB CORECLASS_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/XMP*.cpp)
+
+list (APPEND UTILITY_SOURCE_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/ExpatAdapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/ParseRDF.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/XMPCore_Impl.cpp
+    ${CMAKE_SOURCE_DIR}/source/UnicodeConversions.cpp
+    ${CMAKE_SOURCE_DIR}/source/XML_Node.cpp
+    ${CMAKE_SOURCE_DIR}/source/XMP_LibUtils.cpp
+)
+
+#resource files
+if (WIN32)
+    file (GLOB RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/win/*.*)
+else ()
+    file (GLOB RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/linux/*.*)
+endif()
+
+file (GLOB ZUID_SOURCE_FILES ${CMAKE_SOURCE_DIR}/third-party/zuid/interfaces/*.cpp)
+
+add_library(${PROJECT_NAME}
+    ${PUBLIC_CLIENTGLUE_HEADER_FILES}
+    ${PUBLIC_HEADER_FILES}
+    ${INTERNAL_HEADER_FILES}
+    ${ABIWRAPPER_SOURCE_FILES}
+    ${CORECLASS_SOURCE_FILES}
+    ${ZUID_SOURCE_FILES}
+    ${UTILITY_SOURCE_FILES}
+    ${PRIVATE_XMPCORE_ISOURCE_FILES}
+    ${PRIVATE_XMPCORE_IMPLSOURCE_FILES}
+    ${PRIVATE_XMPCOMMON_HEADERS}
+    ${PRIVATE_XMPCOMMON_SOURCES}
+    ${PRIVATE_XMPCORE_HEADERS}
+    ${PUBLIC_XMPCOMMON_HEADERS}
+    ${PUBLIC_XMPCOMMON_SOURCES}
+    ${PUBLIC_XMPCORE_HEADERS}
+    ${PUBLIC_XMPCORE_SOURCES}
+    ${ANDROID_UTILS}
+    ${RESOURCE_FILES}
+)
+
+add_library(XMP::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    FOLDER libs
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+    DEBUG_POSTFIX d
+)
+if (BUILD_SHARED_LIBS)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+#        CXX_VISIBILITY_PRESET hidden
+#        VISIBILITY_INLINES_HIDDEN 1
+        POSITION_INDEPENDENT_CODE ON
+    )
+endif()
+
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+        expat::expat
+)
+
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/public/include>
+        $<INSTALL_INTERFACE:include/XMP-Toolkit-SDK>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:WIN_ENV>
+    $<$<PLATFORM_ID:Linux>:UNIX_ENV>
+    -DBUILDING_XMPCORE_LIB=1
+    -DXMP_COMPONENT_INT_NAMESPACE=AdobeXMPCore_Int
+    # generator expression to check static linking
+    $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BUILDING_XMPCORE_AS_STATIC=1 XMP_StaticBuild=1>
+    $<$<BOOL:${BUILD_SHARED_LIBS}>:BUILDING_XMPCORE_AS_DYNAMIC=1>
+)
+
+target_compile_options(${PROJECT_NAME} PRIVATE
+    $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/MP>
+)
+
+install(TARGETS ${PROJECT_NAME}
+    EXPORT XMP-Toolkit-SDK
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)

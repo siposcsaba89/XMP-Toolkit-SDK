@@ -1,8 +1,6 @@
 ; Declares the entry points for the DLL.
 ; Highest index: 25, WXMPFiles_IsMetadataWritable_1
 
-LIBRARY   XMPFiles
-
 EXPORTS
 
         WXMPFiles_Initialize_1                 @1
